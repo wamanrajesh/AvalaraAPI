@@ -11,622 +11,622 @@ spec:
   lifecycle: production
   owner: team-c
   definition: |
-      openapi: "3.0.1"
-      info:
-        title: "Avalara e-Invoicing API"
-        description: "An API that supports sending data for an e-Invoicing compliance use-case. <br><br> This version is <b>not</b> an API contract, and it will change with feedback."
-        version: "Alpha"
-      servers:
-      - url: "https://rest.avatax.com/einvoicing/v0"
+    openapi: "3.0.1"
+    info:
+      title: "Avalara e-Invoicing API"
+      description: "An API that supports sending data for an e-Invoicing compliance use-case. <br><br> This version is <b>not</b> an API contract, and it will change with feedback."
+      version: "Alpha"
+    servers:
+    - url: "https://rest.avatax.com/einvoicing/v0"
 
-      paths:
-        /ctc/invoices:
-          post:
-            tags:
-            - "Continuous Transaction Controls"
-            operationId: submitInvoice
-            summary: "Submits a transaction to Avalara e-Invoicing"
-            description: "Sending a transaction to this endpoint creates an e-invoice in\
-              \ the format mandated by the specified country and triggers the workflow to transmit\
-              \ the e-invoice to the appropriate tax authority if required. <br><br> The response includes a unique\
-              \ transaction ID that can be used to request a status to confirm if the e-invoice\
-              \ was accepted at the destination. <br><br> The unique ID can also be used\
-              \ to download a copy of the e-invoice."
-            requestBody:
-              required: true
-              content:
-                multipart/form-data:
+    paths:
+      /ctc/invoices:
+        post:
+          tags:
+          - "Continuous Transaction Controls"
+          operationId: submitInvoice
+          summary: "Submits a transaction to Avalara e-Invoicing"
+          description: "Sending a transaction to this endpoint creates an e-invoice in\
+            \ the format mandated by the specified country and triggers the workflow to transmit\
+            \ the e-invoice to the appropriate tax authority if required. <br><br> The response includes a unique\
+            \ transaction ID that can be used to request a status to confirm if the e-invoice\
+            \ was accepted at the destination. <br><br> The unique ID can also be used\
+            \ to download a copy of the e-invoice."
+          requestBody:
+            required: true
+            content:
+              multipart/form-data:
+                schema:
+                  $ref: '#/components/schemas/submitInvoice'
+                encoding:
+                  metadata:
+                    contentType: application/json
+                  data:
+                    contentType: application/xml; charset=utf-8
+          responses:
+            "400":
+              description: "Bad request"
+              content: 
+                text/xml:
                   schema:
-                    $ref: '#/components/schemas/submitInvoice'
-                  encoding:
-                    metadata:
-                      contentType: application/json
-                    data:
-                      contentType: application/xml; charset=utf-8
-            responses:
-              "400":
-                description: "Bad request"
-                content: 
-                  text/xml:
-                    schema:
-                        $ref: "#/components/schemas/exception"
-              "403":
-                description: "Forbidden"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/forbidden"
-              "201":
-                description: "Created"
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/invoicePostResponse"                       
-
-          get:
-            tags:
-            - "Continuous Transaction Controls"
-            operationId: getSummaryInvoiceList
-            summary: "Returns a summary of invoices for a date range" 
-            description: "Get a list of invoices on the Avalara e-Invoicing platform\ that have a processing date within the specified date range. Use this endpoint to select a date range for transactions to view successes and failures. The maximum date range is a single calendar month."
-            parameters:
-            - name: "startDate"
-              in: "query"
-              schema:
-                type: "string"
-                format: "date-time"
-                example: "2021-01-01T00:00:01"
-              description: "Start date of transactions to return. This defaults to the previous month."
-            - name: "endDate"
-              in: "query"
-              schema:
-                type: "string"
-                format: "date-time"
-                example: "2021-01-31T23:59:59"
-              description: "End date of transactions to return. This defaults to the current date."
-            - name: "flow"
-              in: "query"
-              schema:
-                type: "string"
-                example: "out"
-              description: "Optionally filter by invoice direction, where issued = `out` and received = `in`"
-            - name: "count"
-              in: "query"
-              schema:
-                type: "string"
-                example: "true"
-              description: "When set to true, the count of the collection is also returned in the response body"
-            - name: "countOnly"
-              in: "query"
-              schema:
-                type: "string"
-                example: "false"
-              description: "When set to true, only the count of the collection is returned"
-            responses:
-              "200":
-                description: "OK"
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/invoiceListResponse"
-              "400":
-                description: "Bad request"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/badRequest"
-              "403":
-                description: "Forbidden"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/forbidden"
-        /ctc/invoices/{id}/download:
-          get:
-            tags:
-            - "Continuous Transaction Controls"
-            operationId: getInvoice
-            summary: "Returns a copy of the e-invoice"
-            description: "When the e-invoice is available, use this endpoint to download it as text, XML, or PDF.\
-              \ The output format will vary depending on the mandate. If the file has not yet been created,\
-              \ then status code 404 (not found) is returned."
-            parameters:
-            - name: "id"
-              in: "path"
-              required: true
-              description: "The unique ID for this invoice"
-              schema:
-                $ref: '#/components/schemas/id'
-            responses:
-              "404":
-                description: "An invoice for the specified ID was not found."
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/notfound"
-              "200":
-                description: "OK"
-                headers:
-                  Content-type:
-                    schema:
-                      type: "string"
-                content: {}
-              "403":
-                description: "Forbidden"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/forbidden"
-        /ctc/invoices/{id}/status:
-          get:
-            tags:
-            - "Continuous Transaction Controls"
-            operationId: getInvoiceStatus
-            summary: "Checks the status of a transaction"
-            description: "Using the unique ID from POST /einvoicing/invoice response body,\
-              \ request the current status of a transaction."
-            parameters:
-            - name: "id"
-              in: "path"
-              required: true
-              description: "The unique ID for this invoice"
-              schema:
-                $ref: '#/components/schemas/id'
-            responses:
-              "403":
-                description: "Forbidden"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/forbidden"
-              "404":
-                description: "An invoice for the specified ID was not found."
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/notfound"
-              "200":
-                description: "OK"
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/invoiceStatusResponse"
-        /versioninfo:  
-          get:
-            tags: 
-            - Version
-            operationId: getVersion
-            summary: "Returns the version of the deployed API"
-            description: "Display Avalara e-Invoicing API version information."
-            responses:
-              "200":
-                description: "OK"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/versionInfo"
-              "403":
-                description: "Forbidden"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/forbidden"
-        /activations:
-          post:
-            tags:
-            - Activations
-            operationId: createActivationRequest
-            summary: "Submits a new request to activate Avalara with a destination endpoint"
-            description: "Create an activation request to enable the Avalara e-Invoicing service on a destination endpoint."
-            requestBody:
-              required: true
+                      $ref: "#/components/schemas/exception"
+            "403":
+              description: "Forbidden"
               content: 
                 application/json:
                   schema:
-                    $ref: "#/components/schemas/activation"
-            responses:
-              "400":
-                description: "Bad request."
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/badActivationRequest"
-              "403":
-                description: "Forbidden"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/forbidden"
-              "200":
-                description: "OK"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/activationResponse"
-        /activations/{id}:  
-          get:
-            tags:
-            - Activations
-            operationId: getActivation
-            summary: "Returns the details of the activation"
-            description: "Fetch the status of an activation request using its unique ID"
-            parameters:
-            - name: "id"
-              in: "path"
-              required: true
-              schema:
-                $ref: '#/components/schemas/activationId'
-            responses:
-              "403":
-                description: "Forbidden"
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/forbidden"
-              "404":
-                description: "An activation for the specified ID was not found."
-                content: 
-                  application/json:
-                    schema:
-                        $ref: "#/components/schemas/notfound"
-              "200":
-                description: "OK"
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/activationStatusResponse"   
-      tags:
-        - name: Continuous Transaction Controls
-          description: The compliance journey including orders, invoices, payments, and transport business processes.
-        - name: Version
-          description: Examines the version of the currently deployed API
-        - name: Activations
-          description: In some cases, you may be required to authorise Avalara to communicate on your behalf with a destination endpoint, for example a tax authority. The Activations APIs provide a way to activate Avalara as a trusted platform with the tax authority.  
-      components:
-        securitySchemes:
-          Bearer:
-            type: http
-            scheme: bearer
-            bearerFormat: JWT
-            description: JWT Authorization header using the Bearer scheme.
+                      $ref: "#/components/schemas/forbidden"
+            "201":
+              description: "Created"
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/invoicePostResponse"                       
 
-        schemas:
-          id:
-            type: string
-            description: "The unique ID for this invoice that was returned in the POST /einvoicing/invoice response body. Note: This is not an invoice number or document number; it is a UID created by the Avalara e-Invoicing platform."
-            example: "2022-01-008572"
-          invoicePostResponse:
-            type: "object"
-            description: "Returns the unique ID of a successful e-Invoicing submission"
-            properties:
-              id:
-                type: "string"
-                example: "2022-01-008572"
-                description: "Unique ID for this transaction that can be used for status\
-                  \ checking and file downloads. Note: This is not an invoice number or document\
-                  \ number; it is a UID created by the Avalara e-Invoicing platform."
-          invoiceStatusResponse:
-            type: "object"
-            description: "Returns the current transaction ID and status"
-            properties:
-              id:
-                type: "string"
-                example: "2022-01-008572"
-                description: "The unique ID for this transaction"
-              status:
-                type: "string"
-                example: "Complete"
-                description: "Status of the transaction: <br> 'Pending' <br> 'Failed' <br> 'Complete'"
-              events:
-                type: array
-                items:
-                  $ref: "#/components/schemas/statusEvents"
-          invoiceListResponse:
-            required:
-              - invoices
-            type: "object"
-            description: "Returns the requested list of invoices"
-            properties:
-              invoices: 
-                type: array
-                items:
-                  $ref: "#/components/schemas/invoiceSummary"
-                description: Array of invoices matching query parameters
-              recordSetCount:
-                type: "string"
-                example: "2"
-                description: Count of collections for the given date range
-              nextLink:
-                type: "string"
-                example: "https://rest.avatax.com/einvoicing/v0/ctc/invoices?startDate=2021-01-01T00:00:01&endDate=2021-01-31T23:59:59&flow=out&count=true&offset=2"
-                description: URL to the next page of items
-                nullable: true
-          invoiceSummary:
-            type: "object"
-            description: "Displays a summary of information about the transaction"
-            properties:
-              id:
-                type: "string"
-                description: "The unique ID for this transaction"
-                example: "2022-01-008572"
-              processDateTime:
-                type: "string"
-                example: "2022-01-09T12:36:02"
-                description: "The date and time when the invoice document was processed, displayed in the format YYYY-MM-DDThh:mm:ss" 
-              status:
-                type: "string"
-                description: "The transaction status: <br> 'Pending' <br> 'Failed' <br> 'Complete'"
-                example: "Complete"
-              supplierName:
-                type: "string"
-                description: "The name of the supplier in the transaction"
-                example: "Inposia GmbH"
-              customerName:
-                type: "string"
-                description: "The name of the customer in the transaction"
-                example: "Avalara Inc."
-              documentNumber:
-                type: "string"
-                description: "The invoice document number"
-                example: "8042091758"
-              documentDate:
-                type: "string"
-                description: "The invoice issue date"
-                example: "2022-01-09"
-              flow:
-                type: "string"
-                description: "The invoice direction, where issued = `out` and received = `in`"
-                example: "out"
-              countryCode:
-                type: "string"
-                description: "The two-letter ISO-3166 country code for the country where the e-invoice is being submitted"
-                example: "DE"
-              countryMandate: 
-                type: "string"
-                description: "The e-invoicing mandate for the specified country"
-                example: "DE-B2G-XRECHNUNG"
-              interface:
-                type: "string"
-                description: "The interface where the invoice data is sent"
-                example: "PEPPOL"
-              receiver:
-                type: "string"
-                description: "The invoice recipient based on the interface" 
-                example: "9930:AVALARATEST"
-          statusEvents:
-            type: "object"
-            description: "Displays when a status event occurred"
-            properties:
-              eventDateTime:
-                type: "string"
-                description: "The date and time when the status event occured, displayed in the format YYYY-MM-DDThh:mm:ss"
-                example: "2022-01-09T12:36:02"
-              message:
-                type: "string"
-                description: "A message describing the status event"
-                example: "e-Invoice sent via Peppol"
-          isoTwoDigitCodes:
-            type: "string"
-            description: "An alphabetical list of two-letter ISO-3166 country codes."
-            enum: [ AF,AL,DZ,AS,AD,AO,AI,AQ,AG,AR,AM,AW,AU,AT,AZ,BS,BH,BD,BB,BY,BE,BZ,BJ,BM,BT,BO,BQ,BA,BW,BV,BR,IO,BN,BG,BF,BI,CV,KH,CM,CA,KY,CF,TD,CL,CN,CX,CC,CO,KM,CD,CG,CK,CR,HR,CU,CW,CY,CZ,CI,DK,DJ,DM,DO,EC,EG,SV,GQ,ER,EE,SZ,ET,FK,FO,FJ,FI,FR,GF,PF,TF,GA,GM,GE,DE,GH,GI,GR,GL,GD,GP,GU,GT,GG,GN,GW,GY,HT,HM,VA,HN,HK,HU,IS,IN,ID,IR,IQ,IE,IM,IL,IT,JM,JP,JE,JO,KZ,KE,KI,KP,KR,KW,KG,LA,LV,LB,LS,LR,LY,LI,LT,LU,MO,MG,MW,MY,MV,ML,MT,MH,MQ,MR,MU,YT,MX,FM,MD,MC,MN,ME,MS,MA,MZ,MM,NA,NR,NP,NL,NC,NZ,NI,NE,NG,NU,NF,MP,NO,OM,PK,PW,PS,PA,PG,PY,PE,PH,PN,PL,PT,PR,QA,MK,RO,RU,RW,RE,BL,SH,KN,LC,MF,PM,VC,WS,SM,ST,SA,SN,RS,SC,SL,SG,SX,SK,SI,SB,SO,ZA,GS,SS,ES,LK,SD,SR,SJ,SE,CH,SY,TW,TJ,TZ,TH,TL,TG,TK,TO,TT,TN,TR,TM,TC,TV,UG,UA,AE,GB,UM,US,UY,UZ,VU,VE,VN,VG,VI,WF,EH,YE,ZM,ZW,AX ]
-          submitInvoice:
-            type: "object"
-            description: "Creates an e-invoice in the format mandated by the specified country"
-            properties:
-              metadata:
-                description: 'Key value pairs of metadata of this transaction: 
-                <br><pre>{ 
-                "workflowId": "partner-einvoicing",
-                "dataFormat": "peppol-bis",
-                "dataFormatVersion": "3.0",
-                "countryCode": "SA",
-                "countryMandate": "SA-Phase1-B2B" }</pre>
-                <br> '
-                type: "object"
-                properties: 
-                  workflowId:
+        get:
+          tags:
+          - "Continuous Transaction Controls"
+          operationId: getSummaryInvoiceList
+          summary: "Returns a summary of invoices for a date range" 
+          description: "Get a list of invoices on the Avalara e-Invoicing platform\ that have a processing date within the specified date range. Use this endpoint to select a date range for transactions to view successes and failures. The maximum date range is a single calendar month."
+          parameters:
+          - name: "startDate"
+            in: "query"
+            schema:
+              type: "string"
+              format: "date-time"
+              example: "2021-01-01T00:00:01"
+            description: "Start date of transactions to return. This defaults to the previous month."
+          - name: "endDate"
+            in: "query"
+            schema:
+              type: "string"
+              format: "date-time"
+              example: "2021-01-31T23:59:59"
+            description: "End date of transactions to return. This defaults to the current date."
+          - name: "flow"
+            in: "query"
+            schema:
+              type: "string"
+              example: "out"
+            description: "Optionally filter by invoice direction, where issued = `out` and received = `in`"
+          - name: "count"
+            in: "query"
+            schema:
+              type: "string"
+              example: "true"
+            description: "When set to true, the count of the collection is also returned in the response body"
+          - name: "countOnly"
+            in: "query"
+            schema:
+              type: "string"
+              example: "false"
+            description: "When set to true, only the count of the collection is returned"
+          responses:
+            "200":
+              description: "OK"
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/invoiceListResponse"
+            "400":
+              description: "Bad request"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/badRequest"
+            "403":
+              description: "Forbidden"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/forbidden"
+      /ctc/invoices/{id}/download:
+        get:
+          tags:
+          - "Continuous Transaction Controls"
+          operationId: getInvoice
+          summary: "Returns a copy of the e-invoice"
+          description: "When the e-invoice is available, use this endpoint to download it as text, XML, or PDF.\
+            \ The output format will vary depending on the mandate. If the file has not yet been created,\
+            \ then status code 404 (not found) is returned."
+          parameters:
+          - name: "id"
+            in: "path"
+            required: true
+            description: "The unique ID for this invoice"
+            schema:
+              $ref: '#/components/schemas/id'
+          responses:
+            "404":
+              description: "An invoice for the specified ID was not found."
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/notfound"
+            "200":
+              description: "OK"
+              headers:
+                Content-type:
+                  schema:
                     type: "string"
-                    description: "Specifies a unique ID for this workflow."
-                    example: "partner-einvoicing"
-                  dataFormat:
-                    type: "string"
-                    description: "Specifies the data format for this workflow. Currently, only `peppol-bis` is supported."
-                    example: "peppol-bis"
-                  dataFormatVersion:
-                    type: "string"
-                    description: "Specifies the data format version number."
-                    example: "3.0"
-                  countryCode: 
-                    type: "string"
-                    description: "The two-letter ISO-3166 country code for the country where the e-invoice is being submitted"
-                    example: "SA"
-                  countryMandate:
-                    type: "string"
-                    description: "The e-invoicing mandate for the specified country."
-                    example: "SA-Phase1-B2B"
-              data:
-                description: "The invoice data part of the body, using the data format described in the headerData 'dataFormat' and 'dataFormatVersion' in the [PEPPOL BIS Billing 3.0 documentation](https://docs.peppol.eu/poacc/billing/3.0/).</a>"
-                type: "object"
-                properties: {}
-          versionInfo:
-            type: "object"
-            description: "Returns the Avalara e-Invoicing API version"
-            properties:
-              serviceName:
-                type: "string"
-                description: "The API name"
-                example: "Avalara e-Invoicing API"
-              version: 
-                type: "string"
-                description: "The version number of the API"
-                example: "V0"
-              releaseDate:
-                type: "string"
-                description: "The release date of this version of the API in the format YYYY-MM-DD"
-                example: "2022-02-01"
-              isLatestVersion:
-                type: boolean
-                description: "Indicates whether the API version matches the latest available version" 
-                example: true
-          forbidden: 
-            type: "object"
-            description: "Returns an optional message with a 'forbidden' response"
-            properties:
-              Message:
-                type: "string"
-                description: "A message that informs the user that they may not access a resource"
-                example: "User is not authorized to access this resource with an explicit deny"
-          exception:
-            type: "object"
-            description: "Returns an HTTP status code and message for an 'exception'"
-            properties:
-              StatusCode:
-                type: "string"
-                description: "The three-digit HTTP status code for the exception"
-                example: "400"
-              Message:
-                type: "string"
-                description: "A message explaining the exception"
-                example: "Failed to parse document"
-          badRequest:
-            type: "object"
-            description: "Returns an HTTP status code and message for a 'bad request'"
-            properties:
-              error:
-                type: "string"
-                description: "The three-digit HTTP error code for the bad request"
-                example: "400"
-              message:
-                type: "string"
-                description: "A message explaining the bad request"
-                example: "Invalid data format YYYY-MM-DDThh:mm:ss expected"
-          notfound:
-            type: "object"
-            description: "Returns an HTTP error code and message for a 'not found' error"
-            properties:
-              error:
-                type: "string"
-                description: "The three-digit HTTP error code for a not found error"
-                example: "404"
-              message:
-                type: "string"
-                description: "A message about the not found error"
-                example: "Not Found"
-          activation:
-            type: "object"
-            description: "Activate Avalara e-Invoicing as a trusted platform with a tax authority"
-            properties:
-              activationStatus:
-                type: "string"
-                description: "The status of the activation request"
-                example: "Pending"
-              activationService: 
-                type: "string"
-                description: "The interface for the country mandate"
-                example: "peppol"
-              companyName:
-                type: "string"
-                description: "The name of the company requesting activation"
-                example: "ACME Inc."
-              companyCountryCode:
-                type: "string"
-                description: "The two-letter ISO-3166 country code for the country where the company is based"
-                example: "DE"
-              companyAddress:
-                type: "string"
-                description: "The address of the company" 
-                example: "ACME street 123"
-              identifierScheme: 
-                type: "string"
-                example: "9930"
-                description: "For the Peppol registration, the identiferScheme should follow the ISO6523 rules at [https://docs.peppol.eu/poacc/billing/3.0/codelist/ICD](https://docs.peppol.eu/poacc/billing/3.0/)."
-              identifier:
-                type: "string"
-                description: "Specifies an identifier according to the identiferScheme "
-                example: "DE1234567890"
-              testNetwork:
-                type: "boolean"
-                description: "Specifies whether the test network is selected"
-                example: true
-              productionNetwork:
-                type: "boolean"
-                description: "Specifies whether the production network is selected"
-                example: false    
-          activationId:
-            type: "string"
-            description: "The unique ID that refers to a specific activation"  
-          activationStatusResponse:
-            type: "object"
-            description: "The response for a successful activation request."
-            properties:
-              activationId:
-                type: string
-                description: "The unique ID that refers to a specific activation"
-                example: "2022-07-000356"
-              activationStatus:
-                type: "string"
-                description: "The status of the activation request. If there is an error, then this also shows an error message."
-                example: "Complete"
-              activationService: 
-                type: "string"
-                description:  "The interface for the mandate" 
-                example: "peppol"
-              companyName:
-                type: "string"
-                description: "The name of the company requesting the activation" 
-                example: "ACME Inc."
-              companyCountryCode:
-                type: "string"
-                description: "The two-letter ISO-3166 country code for the country where the company is based"
-                example: "DE"
-              companyAddress:
-                type: "string"
-                description: "The address of the company requesting the activation" 
-                example: "ACME street 123"
-              identifierScheme:
-                type: "string"
-                example: "9930"
-                description: "For the Peppol registration, the identiferScheme should follow the ISO6523 rules at [https://docs.peppol.eu/poacc/billing/3.0/codelist/ICD](https://docs.peppol.eu/poacc/billing/3.0/)."
-              identifier:
-                type: "string"
-                example: "DE1234567890"
-                description: "Specifies an identifier according to the identiferScheme"
-              testNetwork:
-                type: boolean
-                description: "Specifies whether the test network is selected"
-                example: true
-              productionNetwork:
-                type: boolean
-                description: "Specifies whether the production network is selected"
-                example: false
-              errorMessage:
-                type: "string"
-                description: "An error message that displays if the activation was unsuccessful"
-                example: "Participant already exists in your organization" 
-          badActivationRequest:
-            type: "object"
-            description: "The error and message for bad activation requests"
-            properties:
-              error:
-                type: "string"
-                description: "A bad request error"
-                example: "400"
-              message:
-                type: "string"
-                description: "A message explaining the bad request error"
-                example: "Invalid company name"
-          activationResponse:
-            type: "object"
-            description: "Returns the unique activation ID upon success"
-            properties:
-              activationId:
-                type: "string"
-                example: "2022-07-000356"
-                description: "The unique ID that refers to a specific activation"
+              content: {}
+            "403":
+              description: "Forbidden"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/forbidden"
+      /ctc/invoices/{id}/status:
+        get:
+          tags:
+          - "Continuous Transaction Controls"
+          operationId: getInvoiceStatus
+          summary: "Checks the status of a transaction"
+          description: "Using the unique ID from POST /einvoicing/invoice response body,\
+            \ request the current status of a transaction."
+          parameters:
+          - name: "id"
+            in: "path"
+            required: true
+            description: "The unique ID for this invoice"
+            schema:
+              $ref: '#/components/schemas/id'
+          responses:
+            "403":
+              description: "Forbidden"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/forbidden"
+            "404":
+              description: "An invoice for the specified ID was not found."
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/notfound"
+            "200":
+              description: "OK"
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/invoiceStatusResponse"
+      /versioninfo:  
+        get:
+          tags: 
+          - Version
+          operationId: getVersion
+          summary: "Returns the version of the deployed API"
+          description: "Display Avalara e-Invoicing API version information."
+          responses:
+            "200":
+              description: "OK"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/versionInfo"
+            "403":
+              description: "Forbidden"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/forbidden"
+      /activations:
+        post:
+          tags:
+          - Activations
+          operationId: createActivationRequest
+          summary: "Submits a new request to activate Avalara with a destination endpoint"
+          description: "Create an activation request to enable the Avalara e-Invoicing service on a destination endpoint."
+          requestBody:
+            required: true
+            content: 
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/activation"
+          responses:
+            "400":
+              description: "Bad request."
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/badActivationRequest"
+            "403":
+              description: "Forbidden"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/forbidden"
+            "200":
+              description: "OK"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/activationResponse"
+      /activations/{id}:  
+        get:
+          tags:
+          - Activations
+          operationId: getActivation
+          summary: "Returns the details of the activation"
+          description: "Fetch the status of an activation request using its unique ID"
+          parameters:
+          - name: "id"
+            in: "path"
+            required: true
+            schema:
+              $ref: '#/components/schemas/activationId'
+          responses:
+            "403":
+              description: "Forbidden"
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/forbidden"
+            "404":
+              description: "An activation for the specified ID was not found."
+              content: 
+                application/json:
+                  schema:
+                      $ref: "#/components/schemas/notfound"
+            "200":
+              description: "OK"
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/activationStatusResponse"   
+    tags:
+      - name: Continuous Transaction Controls
+        description: The compliance journey including orders, invoices, payments, and transport business processes.
+      - name: Version
+        description: Examines the version of the currently deployed API
+      - name: Activations
+        description: In some cases, you may be required to authorise Avalara to communicate on your behalf with a destination endpoint, for example a tax authority. The Activations APIs provide a way to activate Avalara as a trusted platform with the tax authority.  
+    components:
+      securitySchemes:
+        Bearer:
+          type: http
+          scheme: bearer
+          bearerFormat: JWT
+          description: JWT Authorization header using the Bearer scheme.
+
+      schemas:
+        id:
+          type: string
+          description: "The unique ID for this invoice that was returned in the POST /einvoicing/invoice response body. Note: This is not an invoice number or document number; it is a UID created by the Avalara e-Invoicing platform."
+          example: "2022-01-008572"
+        invoicePostResponse:
+          type: "object"
+          description: "Returns the unique ID of a successful e-Invoicing submission"
+          properties:
+            id:
+              type: "string"
+              example: "2022-01-008572"
+              description: "Unique ID for this transaction that can be used for status\
+                \ checking and file downloads. Note: This is not an invoice number or document\
+                \ number; it is a UID created by the Avalara e-Invoicing platform."
+        invoiceStatusResponse:
+          type: "object"
+          description: "Returns the current transaction ID and status"
+          properties:
+            id:
+              type: "string"
+              example: "2022-01-008572"
+              description: "The unique ID for this transaction"
+            status:
+              type: "string"
+              example: "Complete"
+              description: "Status of the transaction: <br> 'Pending' <br> 'Failed' <br> 'Complete'"
+            events:
+              type: array
+              items:
+                $ref: "#/components/schemas/statusEvents"
+        invoiceListResponse:
+          required:
+            - invoices
+          type: "object"
+          description: "Returns the requested list of invoices"
+          properties:
+            invoices: 
+              type: array
+              items:
+                $ref: "#/components/schemas/invoiceSummary"
+              description: Array of invoices matching query parameters
+            recordSetCount:
+              type: "string"
+              example: "2"
+              description: Count of collections for the given date range
+            nextLink:
+              type: "string"
+              example: "https://rest.avatax.com/einvoicing/v0/ctc/invoices?startDate=2021-01-01T00:00:01&endDate=2021-01-31T23:59:59&flow=out&count=true&offset=2"
+              description: URL to the next page of items
+              nullable: true
+        invoiceSummary:
+          type: "object"
+          description: "Displays a summary of information about the transaction"
+          properties:
+            id:
+              type: "string"
+              description: "The unique ID for this transaction"
+              example: "2022-01-008572"
+            processDateTime:
+              type: "string"
+              example: "2022-01-09T12:36:02"
+              description: "The date and time when the invoice document was processed, displayed in the format YYYY-MM-DDThh:mm:ss" 
+            status:
+              type: "string"
+              description: "The transaction status: <br> 'Pending' <br> 'Failed' <br> 'Complete'"
+              example: "Complete"
+            supplierName:
+              type: "string"
+              description: "The name of the supplier in the transaction"
+              example: "Inposia GmbH"
+            customerName:
+              type: "string"
+              description: "The name of the customer in the transaction"
+              example: "Avalara Inc."
+            documentNumber:
+              type: "string"
+              description: "The invoice document number"
+              example: "8042091758"
+            documentDate:
+              type: "string"
+              description: "The invoice issue date"
+              example: "2022-01-09"
+            flow:
+              type: "string"
+              description: "The invoice direction, where issued = `out` and received = `in`"
+              example: "out"
+            countryCode:
+              type: "string"
+              description: "The two-letter ISO-3166 country code for the country where the e-invoice is being submitted"
+              example: "DE"
+            countryMandate: 
+              type: "string"
+              description: "The e-invoicing mandate for the specified country"
+              example: "DE-B2G-XRECHNUNG"
+            interface:
+              type: "string"
+              description: "The interface where the invoice data is sent"
+              example: "PEPPOL"
+            receiver:
+              type: "string"
+              description: "The invoice recipient based on the interface" 
+              example: "9930:AVALARATEST"
+        statusEvents:
+          type: "object"
+          description: "Displays when a status event occurred"
+          properties:
+            eventDateTime:
+              type: "string"
+              description: "The date and time when the status event occured, displayed in the format YYYY-MM-DDThh:mm:ss"
+              example: "2022-01-09T12:36:02"
+            message:
+              type: "string"
+              description: "A message describing the status event"
+              example: "e-Invoice sent via Peppol"
+        isoTwoDigitCodes:
+          type: "string"
+          description: "An alphabetical list of two-letter ISO-3166 country codes."
+          enum: [ AF,AL,DZ,AS,AD,AO,AI,AQ,AG,AR,AM,AW,AU,AT,AZ,BS,BH,BD,BB,BY,BE,BZ,BJ,BM,BT,BO,BQ,BA,BW,BV,BR,IO,BN,BG,BF,BI,CV,KH,CM,CA,KY,CF,TD,CL,CN,CX,CC,CO,KM,CD,CG,CK,CR,HR,CU,CW,CY,CZ,CI,DK,DJ,DM,DO,EC,EG,SV,GQ,ER,EE,SZ,ET,FK,FO,FJ,FI,FR,GF,PF,TF,GA,GM,GE,DE,GH,GI,GR,GL,GD,GP,GU,GT,GG,GN,GW,GY,HT,HM,VA,HN,HK,HU,IS,IN,ID,IR,IQ,IE,IM,IL,IT,JM,JP,JE,JO,KZ,KE,KI,KP,KR,KW,KG,LA,LV,LB,LS,LR,LY,LI,LT,LU,MO,MG,MW,MY,MV,ML,MT,MH,MQ,MR,MU,YT,MX,FM,MD,MC,MN,ME,MS,MA,MZ,MM,NA,NR,NP,NL,NC,NZ,NI,NE,NG,NU,NF,MP,NO,OM,PK,PW,PS,PA,PG,PY,PE,PH,PN,PL,PT,PR,QA,MK,RO,RU,RW,RE,BL,SH,KN,LC,MF,PM,VC,WS,SM,ST,SA,SN,RS,SC,SL,SG,SX,SK,SI,SB,SO,ZA,GS,SS,ES,LK,SD,SR,SJ,SE,CH,SY,TW,TJ,TZ,TH,TL,TG,TK,TO,TT,TN,TR,TM,TC,TV,UG,UA,AE,GB,UM,US,UY,UZ,VU,VE,VN,VG,VI,WF,EH,YE,ZM,ZW,AX ]
+        submitInvoice:
+          type: "object"
+          description: "Creates an e-invoice in the format mandated by the specified country"
+          properties:
+            metadata:
+              description: 'Key value pairs of metadata of this transaction: 
+              <br><pre>{ 
+              "workflowId": "partner-einvoicing",
+              "dataFormat": "peppol-bis",
+              "dataFormatVersion": "3.0",
+              "countryCode": "SA",
+              "countryMandate": "SA-Phase1-B2B" }</pre>
+              <br> '
+              type: "object"
+              properties: 
+                workflowId:
+                  type: "string"
+                  description: "Specifies a unique ID for this workflow."
+                  example: "partner-einvoicing"
+                dataFormat:
+                  type: "string"
+                  description: "Specifies the data format for this workflow. Currently, only `peppol-bis` is supported."
+                  example: "peppol-bis"
+                dataFormatVersion:
+                  type: "string"
+                  description: "Specifies the data format version number."
+                  example: "3.0"
+                countryCode: 
+                  type: "string"
+                  description: "The two-letter ISO-3166 country code for the country where the e-invoice is being submitted"
+                  example: "SA"
+                countryMandate:
+                  type: "string"
+                  description: "The e-invoicing mandate for the specified country."
+                  example: "SA-Phase1-B2B"
+            data:
+              description: "The invoice data part of the body, using the data format described in the headerData 'dataFormat' and 'dataFormatVersion' in the [PEPPOL BIS Billing 3.0 documentation](https://docs.peppol.eu/poacc/billing/3.0/).</a>"
+              type: "object"
+              properties: {}
+        versionInfo:
+          type: "object"
+          description: "Returns the Avalara e-Invoicing API version"
+          properties:
+            serviceName:
+              type: "string"
+              description: "The API name"
+              example: "Avalara e-Invoicing API"
+            version: 
+              type: "string"
+              description: "The version number of the API"
+              example: "V0"
+            releaseDate:
+              type: "string"
+              description: "The release date of this version of the API in the format YYYY-MM-DD"
+              example: "2022-02-01"
+            isLatestVersion:
+              type: boolean
+              description: "Indicates whether the API version matches the latest available version" 
+              example: true
+        forbidden: 
+          type: "object"
+          description: "Returns an optional message with a 'forbidden' response"
+          properties:
+            Message:
+              type: "string"
+              description: "A message that informs the user that they may not access a resource"
+              example: "User is not authorized to access this resource with an explicit deny"
+        exception:
+          type: "object"
+          description: "Returns an HTTP status code and message for an 'exception'"
+          properties:
+            StatusCode:
+              type: "string"
+              description: "The three-digit HTTP status code for the exception"
+              example: "400"
+            Message:
+              type: "string"
+              description: "A message explaining the exception"
+              example: "Failed to parse document"
+        badRequest:
+          type: "object"
+          description: "Returns an HTTP status code and message for a 'bad request'"
+          properties:
+            error:
+              type: "string"
+              description: "The three-digit HTTP error code for the bad request"
+              example: "400"
+            message:
+              type: "string"
+              description: "A message explaining the bad request"
+              example: "Invalid data format YYYY-MM-DDThh:mm:ss expected"
+        notfound:
+          type: "object"
+          description: "Returns an HTTP error code and message for a 'not found' error"
+          properties:
+            error:
+              type: "string"
+              description: "The three-digit HTTP error code for a not found error"
+              example: "404"
+            message:
+              type: "string"
+              description: "A message about the not found error"
+              example: "Not Found"
+        activation:
+          type: "object"
+          description: "Activate Avalara e-Invoicing as a trusted platform with a tax authority"
+          properties:
+            activationStatus:
+              type: "string"
+              description: "The status of the activation request"
+              example: "Pending"
+            activationService: 
+              type: "string"
+              description: "The interface for the country mandate"
+              example: "peppol"
+            companyName:
+              type: "string"
+              description: "The name of the company requesting activation"
+              example: "ACME Inc."
+            companyCountryCode:
+              type: "string"
+              description: "The two-letter ISO-3166 country code for the country where the company is based"
+              example: "DE"
+            companyAddress:
+              type: "string"
+              description: "The address of the company" 
+              example: "ACME street 123"
+            identifierScheme: 
+              type: "string"
+              example: "9930"
+              description: "For the Peppol registration, the identiferScheme should follow the ISO6523 rules at [https://docs.peppol.eu/poacc/billing/3.0/codelist/ICD](https://docs.peppol.eu/poacc/billing/3.0/)."
+            identifier:
+              type: "string"
+              description: "Specifies an identifier according to the identiferScheme "
+              example: "DE1234567890"
+            testNetwork:
+              type: "boolean"
+              description: "Specifies whether the test network is selected"
+              example: true
+            productionNetwork:
+              type: "boolean"
+              description: "Specifies whether the production network is selected"
+              example: false    
+        activationId:
+          type: "string"
+          description: "The unique ID that refers to a specific activation"  
+        activationStatusResponse:
+          type: "object"
+          description: "The response for a successful activation request."
+          properties:
+            activationId:
+              type: string
+              description: "The unique ID that refers to a specific activation"
+              example: "2022-07-000356"
+            activationStatus:
+              type: "string"
+              description: "The status of the activation request. If there is an error, then this also shows an error message."
+              example: "Complete"
+            activationService: 
+              type: "string"
+              description:  "The interface for the mandate" 
+              example: "peppol"
+            companyName:
+              type: "string"
+              description: "The name of the company requesting the activation" 
+              example: "ACME Inc."
+            companyCountryCode:
+              type: "string"
+              description: "The two-letter ISO-3166 country code for the country where the company is based"
+              example: "DE"
+            companyAddress:
+              type: "string"
+              description: "The address of the company requesting the activation" 
+              example: "ACME street 123"
+            identifierScheme:
+              type: "string"
+              example: "9930"
+              description: "For the Peppol registration, the identiferScheme should follow the ISO6523 rules at [https://docs.peppol.eu/poacc/billing/3.0/codelist/ICD](https://docs.peppol.eu/poacc/billing/3.0/)."
+            identifier:
+              type: "string"
+              example: "DE1234567890"
+              description: "Specifies an identifier according to the identiferScheme"
+            testNetwork:
+              type: boolean
+              description: "Specifies whether the test network is selected"
+              example: true
+            productionNetwork:
+              type: boolean
+              description: "Specifies whether the production network is selected"
+              example: false
+            errorMessage:
+              type: "string"
+              description: "An error message that displays if the activation was unsuccessful"
+              example: "Participant already exists in your organization" 
+        badActivationRequest:
+          type: "object"
+          description: "The error and message for bad activation requests"
+          properties:
+            error:
+              type: "string"
+              description: "A bad request error"
+              example: "400"
+            message:
+              type: "string"
+              description: "A message explaining the bad request error"
+              example: "Invalid company name"
+        activationResponse:
+          type: "object"
+          description: "Returns the unique activation ID upon success"
+          properties:
+            activationId:
+              type: "string"
+              example: "2022-07-000356"
+              description: "The unique ID that refers to a specific activation"
 
 
 
 
 
-      security:
-        - Bearer: []
+    security:
+      - Bearer: []
