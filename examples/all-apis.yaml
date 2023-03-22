@@ -14,4 +14,4 @@ spec:
     - ./apis/wayback-archive-api.yaml
     - ./apis/wayback-search-api.yaml
     - ./apis/wayback-search-api.yaml
-    - ./apis/avalara-einvoicing-api.yaml
+    - ./apis/avalara-restrictions-api.yaml

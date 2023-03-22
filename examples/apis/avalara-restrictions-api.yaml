@@ -1,0 +1,568 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: Avalara-Restrictions-API-Prod
+  description: The API provides the user with the capability to get restrictions for a cross border transaction.
+spec:
+  type: openapi
+  lifecycle: production
+  owner: guests
+  system: examples
+  definition: | 
+    openapi: "3.0.3"
+    info:
+      description: The API provides the user with the capability to get restrictions for a cross border transaction.
+      version: 1.0.0
+      title: Avalara - Restrictions - API
+      contact:
+        email: support@avalara.com
+      license:
+        name: Avalara License
+        url: http://www.avalara.com
+    servers:
+      - description: Restrictions Sandbox URL
+        url: https://restrictions-sandbox.classification.avalara.net
+      - description: Restrictions Production URL
+        url: https://restrictions.classification.avalara.net
+
+    security:
+      - basicAuth: []
+      
+    paths:
+
+      '/api/v2/companies/{companyId}/restrictions':
+        post:
+          tags:
+            - Restrictions
+          summary: Get restrictions for a basket of products.
+          description: Get restrictions for a basket of products.
+          operationId: Restrictions
+          parameters:
+            - name: companyId
+              in: path
+              required: true
+              description: The ID of the company that owns this item.
+              schema:
+                $ref: '#/components/schemas/companyId'
+          requestBody:
+            description: The details for the item which requires quoting.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Basket'
+                examples:
+                  sample-request:
+                    $ref: '#/components/examples/SampleRequest'
+          responses:
+            "200":
+              description: Successful request returns restrictions.
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/BasketRestrictions'
+                  examples:
+                    sample-response:
+                      $ref: '#/components/examples/SampleResponse'
+            "401":
+              description: Authentication required. Can be caused by a missing or expired token.
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorInfo'
+                  example:
+                    error:
+                      details:
+                        -
+                          code: AuthenticationIncomplete
+                          number: 34
+                          message: Authentication Incomplete.
+                          description: You must provide an Authorization header of the type Bearer to authenticate correctly.  {0}
+                          helpLink: http://developer.avalara.com/avatax/errors/AuthenticationIncomplete
+                          severity: Exception
+            "422":
+              description: Request cannot be processed. The validation of the parameters provided in the request body failed.
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorInfo'
+                  example:
+                    error:
+                      details:
+                        -
+                          code: CountryNotSupported
+                          number: 3107
+                          message: Destination country 'ZZ' is not supported
+                          description: Restrictions are not available for provided destination country
+                          severity: ERROR
+                        -
+                          number: 5
+                          message: Field id is required.
+                          description: Please provide a value for field id.
+                          helpLink: http://developer.avalara.com/avatax/errors/ValueRequiredError
+                          code: ValueRequiredError
+                          severity: ERROR
+
+      '/api/v2/companies/{companyId}/bulk/restrictions':
+        post:
+          tags:
+            - BulkRestrictions
+          summary: Get restrictions for a basket of products.
+          description: Get restrictions for a basket of products.
+          operationId: BulkRestrictions
+          parameters:
+            - name: companyId
+              in: path
+              required: true
+              description: The ID of the company that owns this item.
+              schema:
+                $ref: '#/components/schemas/companyId'
+          requestBody:
+            description: The details for the item which requires restrictions.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BulkBasket'
+                examples:
+                  sample-request:
+                    $ref: '#/components/examples/SampleBulkRequest'
+          responses:
+            "200":
+              description: Successful request returns restrictions.
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/BulkBasketRestrictions'
+                  examples:
+                    sample-response:
+                      $ref: '#/components/examples/SampleBulkResponse'
+            "401":
+              description: Authentication required. Can be caused by a missing or expired token.
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorInfo'
+                  example:
+                    error:
+                      details:
+                        - code: AuthenticationIncomplete
+                          number: 34
+                          message: Authentication Incomplete.
+                          description: You must provide an Authorization header of the type Bearer to authenticate correctly.  {0}
+                          helpLink: http://developer.avalara.com/avatax/errors/AuthenticationIncomplete
+                          severity: Exception
+            "422":
+              description: Request cannot be processed. The validation of the parameters provided in the request body failed.
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorInfo'
+
+    components:
+      securitySchemes:
+        basicAuth:
+          type: http
+          scheme: basic
+
+      schemas:
+        Basket:
+          required:
+            - shipTo
+            - companyId
+            - lines
+          properties:
+            id:
+              type: string
+              maxLength: 200
+              description: The unique ID number for the restriction
+              example: QT5654560
+            companyId:
+              type: number
+              description: The unique ID number of the company for the basket.
+              example: 202102
+            currency:
+              type: string
+              maxLength: 3
+              description: The currency for the restriction. ISO-4217
+              example: CAD
+            shipFrom:
+              $ref: '#/components/schemas/AddressInfo'
+            shipTo:
+              $ref: '#/components/schemas/AddressInfo'
+            lines:
+              type: array
+              description: List of basket lines.
+              items:
+                $ref: '#/components/schemas/BasketLineItem'        
+
+        BasketRestrictions:
+          properties:
+            id:
+              type: string
+              maxLength: 1000
+              description: The unique ID number for the restriction.
+              example: QT5654560
+            companyId:
+              type: integer
+              description: The unique ID number of the company for the basket.
+              example: 202102
+            currency:
+              type: string
+              maxLength: 3
+              description: The currency for the restriction response. ISO-4217
+              example: CAD
+            shipFrom:
+              $ref: '#/components/schemas/AddressInfo'
+            shipTo:
+              $ref: '#/components/schemas/AddressInfo'
+            lines:
+              type: array
+              description: List of basket lines.
+              items:
+                $ref: '#/components/schemas/LineItemRestriction'
+
+        AddressInfo:
+          required:
+            - country
+          properties:
+            line1:
+              type: string
+              maxLength: 100
+              description: First line of the street address
+              example:
+            line2:
+              type: string
+              maxLength: 100
+              description: Second line of the street address
+              example:
+            line3:
+              type: string
+              maxLength: 100
+              description: Third line of the street address
+              example:
+            city:
+              type: string
+              maxLength: 50
+              description: City component of the address
+              example:
+            region:
+              type: string
+              maxLength: 50
+              description: The code identifying the region within the country. For Canada use ISO 3166-2:CA
+              example:
+            country:
+              type: string
+              maxLength: 2
+              description: Two characters ISO 3166 code identifying the country
+              example: US
+            postalCode:
+              type: string
+              maxLength: 11
+              description: Postal Code / Zip Code component of the address.
+              example: L4A 2L4
+            latitude:
+              type: number
+              description: Geospatial latitude measurement, in Decimal Degrees floating point format.
+              example:
+            longitude:
+              type: number
+              description: Geospatial longitude measurement, in Decimal Degrees floating point format.
+              example:
+
+        BasketLineItem:
+          required:
+            - lineNumber
+            - item
+          properties:
+            lineNumber:
+              type: number
+              description: The line number or code indicating the line on this basket.
+              example: 15646456
+            item:
+              $ref: '#/components/schemas/Item'
+            quantity:
+              type: number
+              description: The quantity of products in this line item.
+              example: 11       
+
+        Restriction:
+          properties:
+            type:
+              type: string
+              description: Type of restrictions
+              example: IMPORT
+            hsCode:
+              type: string
+              description: hs code
+              example: 9401200090
+            regulation:
+              type: string
+              description: Regulation
+              example: PROHIBITED
+            complianceMessage:
+              type: string
+              description: Compliance message.
+              example: Soiled hiking boots are prohibited from import.
+            condition:
+              description: Condition.
+              example: PLAYPENS
+              type: string
+            governmentAgency:
+              description: Government agency.
+              example: PLAYPENS REGULATIONS (CANADA)
+              type: string
+
+        LineItemRestriction:
+          properties:
+            lineNumber:
+              type: number
+              description: The line number or code indicating the line on this basket.
+              example: 15646456
+            item:
+              $ref: '#/components/schemas/Item'
+            quantity:
+              type: number
+              description: The quantity of products in this line item.
+              example: 11
+            restrictions:
+              type: array
+              description: List of restrictions lines.
+              items:
+                $ref: '#/components/schemas/Restriction'
+
+        Item:
+          description: Product details. 
+          required:
+            - itemCode
+            - description
+          properties:
+            itemCode:
+              type: string
+              maxLength: 255
+              description: A unique code representing this item. It’s recommended to use the SKU number.
+              example: ABC
+            description:
+              type: string
+              maxLength: 1000
+              description: A short description of the product. It’s also referred as product title or name.
+              example: Vera Wang Night Gown
+            summary:
+              type: string
+              maxLength: 4000
+              description: A long description of the product.
+            itemGroup:
+              type: string
+              maxLength: 4000
+              description: Product category breadcrumbs. This is the full path to the category where item is included. Categories should be separated by ` > `.
+              example: Clothing > Women > Formal
+            classificationParameters:
+              type: array
+              items:
+                $ref: '#/components/schemas/ItemParameter'
+              example:
+                -
+                  name: coo
+                  value: CN
+                  unit: ''
+                -
+                  name: price
+                  value: '12.32'
+                  unit: 'USD'
+
+        ItemParameter:
+          required:
+            - name
+            - value
+          properties:
+            name:
+              type: string
+              maxLength: 255
+              description: The system has predefined list of parameter names that are known and processed accordingly`:` coo, description, image_url, url, material, price weight, height, length, width.
+              enum: [coo, description, image_url, url, material, price, weight, height, length, width]
+            value:
+              type: string
+              maxLength: 1000
+              description: The parameter’s value.
+            unit:
+              type: string
+              maxLength: 255
+              description: The unit of measurement code for the parameter. For price parameter the unit is required and must be currency code alpha ISO 4217. The only currency currently supported is “USD”.
+
+        BulkBasket:
+          required:
+            - id
+            - companyId
+            - lines
+            - destinations
+          properties:
+            id:
+              type: string
+              maxLength: 200
+              description: The unique ID number for the restriction
+              example: QT5654560
+            companyId:
+              type: number
+              description: The unique ID number of the company for the basket.
+              example: 202102
+            currency:
+              type: string
+              maxLength: 3
+              description: The currency for the restriction. ISO-4217
+              example: CAD
+            shipFrom:
+              $ref: '#/components/schemas/AddressInfo'
+            destinations:
+              type: array
+              description: List of destinations.
+              items:
+                $ref: '#/components/schemas/BulkDestination'
+            lines:
+              type: array
+              description: List of basket lines.
+              items:
+                $ref: '#/components/schemas/BulkBasketLineItem'
+
+        BulkBasketLineItem:
+          required:
+            - item
+            - lineNumber
+          properties:
+            lineNumber:
+              type: number
+              description: The line number or code indicating the line on this basket.
+              example: 15646456
+            item:
+              $ref: '#/components/schemas/BulkItem'
+            quantity:
+              type: number
+              description: The quantity of products in this line item.
+              example: 11
+      
+
+        BulkItem:
+          allOf:
+            - $ref: '#/components/schemas/Item'
+          properties:
+            classifications:
+              type: array
+              items:
+                $ref: '#/components/schemas/BulkClassification'
+
+        BulkClassification:
+          properties:
+            country:
+              description: Two characters ISO 3166 code identifying the country
+              example: US
+              type: string
+              maxLength: 2
+            hscode:
+              description: hs code
+              example: '9401200090'
+              type: string
+
+        BulkDestination:
+          properties:
+            shipTo:
+              $ref: '#/components/schemas/AddressInfo'
+
+        BulkBasketRestrictions:
+          properties:
+            id:
+              type: string
+              maxLength: 200
+              description: The unique ID number for the restriction
+              example: QT5654560
+            companyId:
+              type: number
+              description: The unique ID number of the company for the basket.
+              example: 202102
+            currency:
+              type: string
+              maxLength: 3
+              description: The currency for the restriction. ISO-4217
+              example: CAD
+            shipFrom:
+              $ref: '#/components/schemas/AddressInfo'
+            restrictions:
+              type: array
+              description: List of restrictions for line items.
+              items:
+                $ref: '#/components/schemas/BulkRestriction'
+
+        BulkRestriction:
+          properties:
+            shipTo:
+              $ref: '#/components/schemas/AddressInfo'
+            lines:
+              type: array
+              description: List of basket lines.
+              items:
+                $ref: '#/components/schemas/LineItemRestriction'
+            error:
+              $ref: '#/components/schemas/ErrorInfo'
+              description: The error object will be passed if errors present in basket.
+              
+        companyId:
+          type: integer
+          example: 3402
+          description: The ID of the company that owns this item.
+
+        ErrorInfo:
+          properties:
+            code:
+              type: string
+              description: Name of the error. Refer to Error Codes section for a list of accepted values.
+            message:
+              type: string
+              description: Short one-line message to summarize what went wrong
+            target:
+              type: string
+              enum: [Unknown, HttpRequest, HttpRequestHeaders, IncorrectData]
+              description: What object or service caused the error? (Unknown, HttpRequest, HttpRequestHeaders, IncorrectData)
+              example: HttpRequest
+            details:
+              type: array
+              description: Array of detailed error messages
+              items:
+                $ref: '#/components/schemas/ErrorDetail'
+
+        ErrorDetail:
+          properties:
+            code:
+              type: string
+              description: Name of the error. Refer to Error Codes section for a list of accepted values.
+              example: AuthenticationIncomplete
+            number:
+              type: integer
+              description: Unique ID number referring to this error or message.
+              example: 34
+            message:
+              type: string
+              description: Concise summary of the message, suitable for display in the caption of an alert box.
+              example: Authentication Incomplete.
+            description:
+              type: string
+              description: A more detailed description of the problem referenced by this error message, suitable for display in the contents area of an alert box.
+              example: You must provide an Authorization header of the type Bearer to authenticate correctly.  {0}
+            helpLink:
+              type: string
+              description: URL to help for this message
+            refersTo:
+              type: string
+              description: Item the message refers to, if applicable. This is used to indicate a missing or incorrect value.
+            severity:
+              type: string
+              enum: [Success, Warning, Error, Exception]
+              description: Severity of the message`:`  Success, Warning, Error and Exception.
+      examples:
+        SampleRequest:
+          summary: Restriction api example request
+          value: { "id": "1234", "companyId": 21474836, "shipFrom": { "country": "CN" }, "shipTo": { "country": "DE" }, "lines": [ { "lineNumber": 1, "item": { "itemCode": "34636", "description": "cotton dress", "itemGroup": "clothing > dresses", "classificationParameters": [ { "name": "coo", "value": "GL", "unit": "" }, { "name": "hs_code", "value": "18062095", "unit": "" } ] } } ]}
+        SampleResponse:
+          summary: Restriction api example response
+          value: { "id": "1234", "companyId": 21474836, "shipFrom": { "country": "CN" }, "shipTo": { "country": "DE" }, "lines": [ { "lineNumber": 1, "item": { "itemCode": "34636", "description": "cotton dress", "itemGroup": "clothing > dresses", "classificationParameters": [ { "name": "coo", "value": "GL", "unit": "" }, { "name": "hs_code", "value": "18062095", "unit": "" } ] }, "restrictions": [ { "type": "", "regulation": "", "complianceMessage": "The release for free circulation shall be subject to the presentation of a common entry document or its electronic equivalent duly completed by the competent authority once all controls required have been carried out and favourable results from physical checks, where such checks are required, are known.", "condition": "", "hsCode": "1806", "governmentAgency": "European Commission" } ] } ] } 
+        SampleBulkResponse:
+          summary: Bulk restriction api example response
+          value: { "id": "1234", "companyId": 1010, "shipFrom": { "country": "CN" }, "restrictions": [ { "shipTo": { "country": "US" }, "lines": [ { "lineNumber": 1, "item": { "itemCode": "34636", "description": "cotton dress", "itemGroup": "clothing > dresses", "classificationParameters": [ { "name": "coo", "value": "GL", "unit": "" }, { "name": "hs_code", "value": "93019010", "unit": "" } ] }, "restrictions": [ { "type": "IMPORT", "regulation": "DOCUMENT", "complianceMessage": "USDA APHIS PPQ requires written permits for the importation of cotton products into the United States under the authority of 7 CFR 319.8.", "condition": "Cotton products", "hsCode": "6204", "governmentAgency": "United States Department of Agriculture" } ] }, { "lineNumber": 32235, "item": { "itemCode": "11", "description": "ellipse ", "summary": "ellipse", "itemGroup": "ellipse", "classificationParameters": [] } } ] }, { "shipTo": { "country": "CA" }, "lines": [ { "lineNumber": 1, "item": { "itemCode": "34636", "description": "cotton dress", "itemGroup": "clothing > dresses", "classificationParameters": [ { "name": "coo", "value": "GL", "unit": "" }, { "name": "hs_code", "value": "93019010", "unit": "" } ] }, "restrictions": [ { "type": "EXPORT", "regulation": "LICENCE", "complianceMessage": "portable anti-tank guns", "condition": "", "hsCode": "93019010", "governmentAgency": "Arms Trade Treaty" } ] }, { "lineNumber": 32235, "item": { "itemCode": "11", "description": "ellipse ", "summary": "ellipse", "itemGroup": "ellipse", "classificationParameters": [] }, "restrictions": [ { "type": "IMPORT", "regulation": "PROHIBITED", "complianceMessage": "IMPORTATION OF RELIGHT CANDLES IS PROHIBITED BY CANADA CONSUMER PRODUCT SAFETY ACT", "condition": "RELIGHT CANDLES", "hsCode": "340600", "governmentAgency": "CANADA CONSUMER PRODUCT SAFETY ACT" } ] } ] } ] } 
+        SampleBulkRequest:
+          summary: Bulk restriction api example request
+          value: { "id": "1234", "companyId": 1010, "shipFrom": { "country": "CN" }, "destinations": [ { "shipTo": { "country": "CA" } }, { "shipTo": { "country": "US" } } ], "lines": [ { "lineNumber": 1, "item": { "itemCode": "34636", "description": "cotton dress", "itemGroup": "clothing > dresses", "classificationParameters": [ { "name": "coo", "value": "GL", "unit": "" }, { "name": "hs_code", "value": "93019010", "unit": "" } ] } }, { "lineNumber": 32235, "item": { "itemCode": 11, "description": "ellipse ", "summary": "ellipse", "itemGroup": "ellipse", "classificationParameters": [ ] } } ] }
