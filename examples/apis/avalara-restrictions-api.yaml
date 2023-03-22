@@ -6,8 +6,7 @@ metadata:
 spec:
   type: openapi
   lifecycle: production
-  owner: guests
-  system: examples
+  owner: team-a
   definition: | 
     openapi: "3.0.3"
     info:
