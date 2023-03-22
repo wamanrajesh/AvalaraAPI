@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: Avalara-API
+  description: A collection of all Avalara API's
+spec:
+  targets:
+    - ./all-apis.yaml
+    #- ./all-components.yaml
+    #- ./all-domains.yaml
+    #- ./all-resources.yaml
+    #- ./all-systems.yaml
