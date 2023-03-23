@@ -1,0 +1,35 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-wfaas
+  description: Wfaas Team
+spec:
+  type: team
+  profile:
+    displayName: Wfaas Team
+    email: team-wfaas@avalara.com
+    picture: https://avatars.dicebear.com/api/identicon/team-b@example.com.svg?background=%23fff&margin=25
+  parent: avalara
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: narasimha.paila
+spec:
+  profile:
+    displayName: Narasimha Paila
+    email: narasimha.paila@avalara.com
+    picture: https://ca.slack-edge.com/T053Q6CD1-U0170BHCDH8-be41c537d34e-512
+  memberOf: [team-wfaas]
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: srinivas.gadisetti
+spec:
+  profile:
+    displayName: Srinivas Gadisetti
+    email: srinivas.gadisetti@avalara.com
+    picture: https://ca.slack-edge.com/T053Q6CD1-U03PY2H07NG-3d4d22963869-192
+  memberOf: [team-wfaas]

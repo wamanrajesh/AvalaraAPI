@@ -1,0 +1,79 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-devdot
+  description: Team Devdot
+spec:
+  type: team
+  profile:
+    displayName: Devdot Team
+    email: team-devdot@avalara.com
+    picture: https://avatars.dicebear.com/api/identicon/team-b@example.com.svg?background=%23fff&margin=25
+  parent: avalara
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: sunil.sonawame
+spec:
+  profile:
+    displayName: Sunil Sonawane
+    email: sunil.sonawane1@avalara.com
+    picture: https://ca.slack-edge.com/T053Q6CD1-U028PPFQRHV-50c5cd77d705-192
+  memberOf: [team-devdot]
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: sunny.raj
+spec:
+  profile:
+    displayName: Sunny Raj
+    email: sunny.raj@avalara.com
+    picture: https://ca.slack-edge.com/T053Q6CD1-U03SHP0GH33-8338980b02c3-192
+  memberOf: [team-devdot]
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: ranvijay.yadav
+spec:
+  profile:
+    displayName: Ranvijay Yadav
+    email: ranvijay.yadav@avalara.com
+    picture: https://avatars.dicebear.com/api/avataaars/jenny-doe@example.com.svg?background=%23fff
+  memberOf: [team-devdot]
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: aruna.nirugoji
+spec:
+  profile:
+    displayName: Aruna Nirugoji
+    email: aruna.nirugoji@avalara.com
+    picture: https://avatars.dicebear.com/api/avataaars/jonathon-page@example.com.svg?background=%23fff
+  memberOf: [team-devdot]
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: ankit.kumar
+spec:
+  profile:
+    displayName: Ankit Kumar
+    email: ankit.kumar@avalara.com
+    picture: https://avatars.dicebear.com/api/avataaars/justine-barrow@example.com.svg?background=%23fff
+  memberOf: [team-devdot]
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: rajesh.waman
+spec:
+  profile:
+    displayName: Rajesh Waman
+    email: rajesh.waman@avalara.com
+    picture: https://ca.slack-edge.com/T053Q6CD1-U02F47G3G74-8ee68fb70326-192
+  memberOf: [team-devdot]
