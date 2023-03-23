@@ -6,7 +6,7 @@ metadata:
 spec:
   type: openapi
   lifecycle: production
-  owner: team-a
+  owner: team-devdot
   definition: | 
     openapi: "3.0.3"
     info:
