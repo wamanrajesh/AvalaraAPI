@@ -21,7 +21,7 @@ spec:
     displayName: Narasimha Paila
     email: narasimha.paila@avalara.com
     picture: https://ca.slack-edge.com/T053Q6CD1-U0170BHCDH8-be41c537d34e-512
-  memberOf: [team-devx-champions]
+  memberOf: [team-devx-champions,team-wfaas]
 ---
 apiVersion: backstage.io/v1alpha1
 kind: User
@@ -32,7 +32,7 @@ spec:
     displayName: Srinivas Gadisetti
     email: srinivas.gadisetti@avalara.com
     picture: https://ca.slack-edge.com/T053Q6CD1-U03PY2H07NG-3d4d22963869-192
-  memberOf: [team-devx-champions]
+  memberOf: [team-devx-champions,team-wfaas]
 ---
 apiVersion: backstage.io/v1alpha1
 kind: User
